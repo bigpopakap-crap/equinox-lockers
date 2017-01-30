@@ -3,10 +3,12 @@ package lockers;
 import java.util.HashSet;
 import java.util.Set;
 
+import lockers.CollisionFunction.CollisionFunctionFactory;
+
 public class EquinoxLockerRoom {
 
-  public static LockerRoom create() {
-    LockerGroup allLockers = LockerGroup.fromRange("any", 0, 400);
+  public static LockerRoom create(CollisionFunctionFactory cfFactory) {
+    LockerGroup allLockers = LockerGroup.fromRange(cfFactory, "any", 0, 400);
 
     LockerGroup leftShowers = allLockers.filterRange("left showers", 0, 50);
     LockerGroup rightShowers = allLockers.filterRange("right showers", 51, 100);

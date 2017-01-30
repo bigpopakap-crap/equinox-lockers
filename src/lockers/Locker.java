@@ -1,20 +1,27 @@
 package lockers;
 
 import java.util.Date;
+import lockers.CollisionFunction.CollisionFunctionFactory;
 
 public class Locker {
 
+  private final CollisionFunctionFactory cfFactory;
+
   private final int number;
+  private CollisionFunction collisionFn;
   private boolean isOutOfService = false;
   private Date timeReserved = null;
 
-  public Locker(int number, boolean isOutOfService) {
+  public Locker(CollisionFunctionFactory cfFactory, int number, boolean isOutOfService) {
+    this.cfFactory = cfFactory;
     this.number = number;
     this.isOutOfService = isOutOfService;
+
+    this.collisionFn = this.cfFactory.createNew();
   }
 
-  public Locker(int number) {
-    this(number, false);
+  public Locker(CollisionFunctionFactory cfFactory, int number) {
+    this(cfFactory, number, false);
   }
 
   public int getNumber() {
@@ -45,12 +52,19 @@ public class Locker {
     }
   }
 
-  public int getCollisionScore() {
-    return 0;
-    // TODO actually keep track of these
+  public CollisionFunction getCollisionFn() {
+    return collisionFn;
   }
 
-  private int getPhysicalDistanceTo(Locker otherLocker) {
+  public void addCollisionFn(CollisionFunction fn) {
+    this.collisionFn = this.collisionFn.add(fn);
+  }
+
+  public void subtractCollisionFn(CollisionFunction fn) {
+    this.collisionFn = this.collisionFn.subtract(fn);
+  }
+
+  public int getPhysicalDistanceTo(Locker otherLocker) {
     /*
       Approximate the physical distance by the difference in locker number.
       But special case for when they're right on top of each other
@@ -67,10 +81,12 @@ public class Locker {
     if (!isAvailable()) {
       throw new LockerUnavailableException(getNumber());
     }
+    this.collisionFn = cfFactory.createNew(timeReserved);
     this.timeReserved = timeReserved;
   }
 
   public void release() {
+    this.collisionFn = cfFactory.createNew();
     this.timeReserved = null;
   }
 
@@ -78,7 +94,6 @@ public class Locker {
     if (isReserved()) {
       throw new LockerUnavailableException(getNumber());
     }
-
     this.isOutOfService = true;
   }
 
@@ -89,7 +104,7 @@ public class Locker {
   @Override
   public String toString() {
     return "Locker " + getNumber()
-                    + " (collision score " + getCollisionScore() + ")"
+                    + " (collision score " + getCollisionFn().apply(new Date()) + ")"
                     + (isReserved() ? " (reserved at " + getTimeReserved() + ")" : "")
                     + (isOutOfService ? " (out of service)" : "");
   }

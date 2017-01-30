@@ -3,10 +3,12 @@ package lockers;
 import java.util.HashSet;
 import java.util.Set;
 
+import lockers.CollisionFunction.CollisionFunctionFactory;
+
 public class TestLockerRoom {
 
-  public static LockerRoom create(int size) {
-    LockerGroup allLockers = LockerGroup.fromRange("any", 1, size);
+  public static LockerRoom create(CollisionFunctionFactory cfFactory, int size) {
+    LockerGroup allLockers = LockerGroup.fromRange(cfFactory, "any", 1, size);
 
     LockerGroup left = allLockers.filterRange("left", 1, size / 3);
     LockerGroup mid = allLockers.filterRange("mid", size/3 + 1, size / 2);
